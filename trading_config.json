@@ -1,0 +1,30 @@
+{
+    "trading_pairs": [
+        "DOT/USDT",
+        "BTC/USDT",
+        "ETHW/USDT",
+        "XCH/USDT"
+    ],
+    "thresholds": {
+        "DOT/USDT": {
+            "upper": 4.1,
+            "lower": 3.4
+        },
+        "BTC/USDT": {
+            "upper": 1500000.0,
+            "lower": 111000.0
+        },
+        "ETHW/USDT": {
+            "upper": 1.8,
+            "lower": 1.6
+        },
+        "XCH/USDT": {
+            "upper": 15.0,
+            "lower": 1.0
+        }
+    },
+    "ntfy_config": {
+        "server": "https://ntfy.sh",
+        "topic": "atula_yeu"
+    }
+}
