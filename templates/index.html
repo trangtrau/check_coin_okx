@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Price Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Crypto Price Monitor</h1>
+            <p>Real-time cryptocurrency price monitoring with alerts</p>
+        </div>
+
+        <div class="price-display">
+            <h2>📊 Current Prices</h2>
+            <div class="timestamp" id="globalTimestamp">Loading...</div>
+            <div class="price-grid" id="priceGrid">
+                <div class="loading">Loading prices...</div>
+            </div>
+        </div>
+
+        <div class="config-sections">
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection('control-section')">
+                    <h2>🎛️ Control Panel</h2>
+                    <span class="toggle-icon" id="control-toggle">▼</span>
+                </div>
+                <div class="section-content" id="control-section">
+                    <div class="control-buttons">
+                        <button class="btn btn-primary" id="startBtn" onclick="startMonitoring()">Start Monitoring</button>
+                        <button class="btn btn-danger" id="stopBtn" onclick="stopMonitoring()" disabled>Stop Monitoring</button>
+                        <button class="btn btn-info" id="futuresBtn" onclick="toggleFutures()">Futures Mode: OFF</button>
+                        <button class="btn btn-warning" onclick="refreshPrices()">Refresh</button>
+                    </div>
+
+                    <div class="control-actions">
+                        <button class="btn btn-secondary" onclick="expandAllSections()">Expand All</button>
+                        <button class="btn btn-secondary" onclick="collapseAllSections()">Collapse All</button>
+                    </div>
+
+                    <div class="font-controls">
+                        <label for="fontSize">Font Size:</label>
+                        <input type="range" id="fontSize" min="12" max="48" value="16" oninput="changeFontSize(this.value)">
+                        <span id="fontSizeValue">16px</span>
+                    </div>
+
+                    <div class="status" id="status">
+                        Status: Stopped
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection('ntfy-section')">
+                    <h2>🔔 NTFY Configuration</h2>
+                    <span class="toggle-icon" id="ntfy-toggle">▼</span>
+                </div>
+                <div class="section-content" id="ntfy-section">
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label for="ntfyServer">NTFY Server:</label>
+                            <input type="text" id="ntfyServer" placeholder="https://ntfy.sh" value="https://ntfy.sh">
+                        </div>
+                        <div class="form-group">
+                            <label for="ntfyTopic">NTFY Topic:</label>
+                            <input type="text" id="ntfyTopic" placeholder="your_topic_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="ntfyPassword">Password (optional):</label>
+                            <input type="password" id="ntfyPassword" placeholder="password">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveNtfyConfig()">Save NTFY Config</button>
+                        <button class="btn btn-info" onclick="testNtfyNotification()">Test Notification</button>
+                    </div>
+                    <div class="ntfy-info">
+                        <p><strong>How to use NTFY:</strong></p>
+                        <ul>
+                            <li>Visit <a href="https://ntfy.sh" target="_blank">ntfy.sh</a> to create a topic</li>
+                            <li>Use the topic name in the field above</li>
+                            <li>Download NTFY app on your phone to receive notifications</li>
+                            <li>Or visit <code>https://ntfy.sh/your_topic_name</code> in your browser</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection('trading-section')">
+                    <h2>⚙️ Trading Pairs Management</h2>
+                    <span class="toggle-icon" id="trading-toggle">▼</span>
+                </div>
+                <div class="section-content" id="trading-section">
+                    <div class="add-pair-form">
+                        <div class="form-group">
+                            <label for="pairInput">Trading Pair:</label>
+                            <input type="text" id="pairInput" placeholder="e.g., DOT, DOT-USDT, or DOT/USDT" oninput="this.value = this.value.toUpperCase()">
+                          </div>
+                        <div class="form-group">
+                            <label for="upperInput">Upper Price:</label>
+                            <input type="number" id="upperInput" placeholder="Upper threshold" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="lowerInput">Lower Price:</label>
+                            <input type="number" id="lowerInput" placeholder="Lower threshold" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="addTradingPair()">Add Pair</button>
+                        </div>
+                    </div>
+
+                    <div class="pairs-list" id="pairsList">
+                        <div class="loading">Loading trading pairs...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Edit Trading Pair</h3>
+                    <span class="close" onclick="closeEditModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editPairName">Trading Pair:</label>
+                        <input type="text" id="editPairName" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUpperInput">Upper Price:</label>
+                        <input type="number" id="editUpperInput" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="editLowerInput">Lower Price:</label>
+                        <input type="number" id="editLowerInput" step="0.01">
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn btn-primary" onclick="saveEdit()">Save</button>
+                        <button class="btn btn-danger" onclick="closeEditModal()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 
